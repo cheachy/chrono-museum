@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Time-Traveler's Museum: VR Final</title>
+    <script src="https://aframe.io/releases/1.4.0/aframe.min.js"></script>
+    <script src="https://unpkg.com/aframe-environment-component@1.3.2/dist/aframe-environment-component.min.js"></script>
+
+    <style>
+      body { margin: 0; overflow: hidden; }
+      
+      /* The Sliding Menu */
+      #time-device {
+        position: fixed;
+        top: 15%;
+        left: -320px; /* Hidden off-screen by default */
+        width: 260px;
+        background: rgba(15, 20, 30, 0.95); /* Sci-fi Dark Blue */
+        border: 2px solid #00FFFF; /* Neon Cyan Border */
+        box-shadow: 0 0 15px rgba(0, 255, 255, 0.4);
+        border-radius: 0 20px 20px 0;
+        color: #E0E0E0;
+        font-family: 'Courier New', Courier, monospace;
+        padding: 25px;
+        z-index: 9999; /* Ensures it sits on top of the 3D view */
+        transition: left 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); /* Bouncy slide effect */
+      }
+
+      /* Class to slide it in */
+      #time-device.open { left: 0; }
+
+      h2 {
+        margin-top: 0;
+        text-align: center;
+        border-bottom: 2px solid #00FFFF;
+        padding-bottom: 10px;
+        color: #00FFFF;
+        text-shadow: 0 0 8px #00FFFF;
+      }
+
+      .option {
+        margin: 18px 0;
+        font-size: 16px;
+        display: flex;
+        align-items: center;
+      }
+      
+      .key {
+        font-weight: bold;
+        background: #00FFFF;
+        color: black;
+        width: 24px;
+        height: 24px;
+        text-align: center;
+        line-height: 24px;
+        border-radius: 4px;
+        margin-right: 15px;
+        box-shadow: 0 0 5px #00FFFF;
+      }
+      
+      .instruction {
+        font-size: 12px;
+        margin-top: 30px;
+        color: #888;
+        text-align: center;
+        border-top: 1px solid #333;
+        padding-top: 10px;
+      }
+    </style>
+  </head>
+  <body>
+
+    <div id="time-device">
+      <h2>CHRONO-VISOR</h2>
+      <div class="option"><span class="key">1</span> Prehistory</div>
+      <div class="option"><span class="key">2</span> Classical Era</div>
+      <div class="option"><span class="key">3</span> Middle Ages</div>
+      <div class="option"><span class="key">4</span> Early Modern</div>
+      <div class="option"><span class="key">5</span> Contemporary</div>
+      <div class="instruction">
+        [M] Toggle Menu <br>
+        [1-5] Travel Time
+      </div>
+    </div>
+
+    <script>
+      // 1. THE DATABASE (Content & Thematic Colors)
+      const museumData = {
+        prehistory: [
+          // Theme: Earth, Fire, Bone
+          { name: "Stone Axe", color: "#7D7D7D", info: "A sharp stone tied to a stick. The first human tool." },
+          { name: "Fire Pit", color: "#B22222", info: "Controlled fire provided warmth and cooked food." },
+          { name: "Cave Art", color: "#8B4513", info: "Paintings made with red ochre and charcoal." },
+          { name: "Bone Needle", color: "#E3DAC9", info: "Used to sew animal hides into clothing." },
+          { name: "Gathering Basket", color: "#D2B48C", info: "Woven grass used to carry nuts and berries." }
+        ],
+        classical: [
+          // Theme: Gold, Marble, Bronze, Clay
+          { name: "Greek Amphora", color: "#A0522D", info: "Terracotta jar for storing wine and olive oil." },
+          { name: "Legion Helmet", color: "#DAA520", info: "Bronze helmet worn by Roman soldiers." },
+          { name: "Papyrus Scroll", color: "#F5DEB3", info: "Ancient paper used by Egyptian scribes." },
+          { name: "Marble Bust", color: "#F5F5F5", info: "Realistic sculpture of a Senator." },
+          { name: "Gold Coin", color: "#FFD700", info: "Standard currency for trade across the empire." }
+        ],
+        middleages: [
+          // Theme: Iron, Dark Wood, Royal Blue
+          { name: "Iron Sword", color: "#708090", info: "The primary weapon of the feudal Knight." },
+          { name: "Heraldic Shield", color: "#191970", info: "Painted with a family Coat of Arms." },
+          { name: "King's Crown", color: "#FFD700", info: "Symbol of the Monarchy and Divine Right." },
+          { name: "Wooden Cross", color: "#5D4037", info: "Symbol of the Church's power." },
+          { name: "Manuscript", color: "#D7CCC8", info: "Books hand-copied by monks in Latin." }
+        ],
+        earlymodern: [
+          // Theme: Brass, Copper, Maps
+          { name: "Naval Compass", color: "#B8860B", info: "Brass tool used to navigate the oceans." },
+          { name: "Printing Press", color: "#3E2723", info: "Gutenberg's machine spread literacy rapidly." },
+          { name: "Telescope", color: "#CD7F32", info: "Used by Galileo to study the stars." },
+          { name: "Gunpowder Keg", color: "#2F3542", info: "Changed warfare and ended the age of castles." },
+          { name: "Spice Sack", color: "#8D6E63", info: "Pepper and Cinnamon were worth more than gold." }
+        ],
+        contemporary: [
+          // Theme: Silver, Black, Neon, Plastic
+          { name: "Computer", color: "#C0C0C0", info: "The beginning of the Digital Age." },
+          { name: "Space Rocket", color: "#FFFFFF", info: "Technology that took humans to the Moon." },
+          { name: "Smartphone", color: "#111111", info: "Instant connection to the entire world." },
+          { name: "Plastic Bottle", color: "#00BFFF", info: "A miracle material that created a waste crisis." },
+          { name: "Robot Arm", color: "#FF8C00", info: "Automation used in modern factories." }
+        ]
+      };
+
+      // 2. INPUT LISTENER (Keyboard Controls)
+      window.addEventListener('keydown', function(e) {
+        
+        // --- [M] TOGGLE MENU ---
+        if (e.key.toLowerCase() === 'm') {
+          document.getElementById('time-device').classList.toggle('open'); 
+        }
+
+        // --- [1-5] SELECT ERA ---
+        // We pass two arguments: The Era Name (for data) and the Environment Preset (for visuals)
+        
+        if (e.key === '1') loadEra('prehistory', 'forest');       // Forest (Daylight)
+        if (e.key === '2') loadEra('classical', 'egypt');         // Desert (Bright Sun)
+        if (e.key === '3') loadEra('middleages', 'dream');        // Dream (Bright/Magical)
+        if (e.key === '4') loadEra('earlymodern', 'arches');      // Arches (Bright Blue Sky)
+        if (e.key === '5') loadEra('contemporary', 'tron');       // Tron (Grid)
+      });
+
+      // 3. THE LOADER FUNCTION
+      function loadEra(eraKey, environmentPreset) {
+        // A. Change the Background
+        document.querySelector('#env').setAttribute('environment', 'preset', environmentPreset);
+        
+        // B. Update the Big Wall Text
+        document.querySelector('#wall-title').setAttribute('value', "ERA: " + eraKey.toUpperCase());
+        document.querySelector('#wall-info').setAttribute('value', "Click an object to analyze.");
+
+        // C. Load the 5 Items from our Database
+        const items = museumData[eraKey];
+        
+        for (let i = 0; i < 5; i++) {
+          // Find the 3D Object and the Text Label
+          let el = document.querySelector('#item' + (i+1));
+          let label = document.querySelector('#label' + (i+1));
+          
+          // Update Data Attributes (Hidden info)
+          el.setAttribute('data-name', items[i].name);
+          el.setAttribute('data-info', items[i].info);
+          
+          // Update Visuals (Color & Label)
+          el.setAttribute('material', 'color', items[i].color);
+          label.setAttribute('value', items[i].name);
+          
+          // Reset Animation (To keep them synced)
+          // We add slightly different speeds so they don't look robotic
+          el.setAttribute('animation', 'dur', 8000 + (i*500)); 
+        }
+      }
+
+      // 4. CLICK COMPONENT (Interactive Logic)
+      AFRAME.registerComponent('info-click', {
+        init: function () {
+          // When the player clicks an object...
+          this.el.addEventListener('click', function () {
+            
+            // Get the data stored on the object
+            let info = this.getAttribute('data-info');
+            let name = this.getAttribute('data-name');
+            
+            // Display it on the Big Wall
+            let titleEl = document.querySelector('#wall-title');
+            let infoEl = document.querySelector('#wall-info');
+            
+            titleEl.setAttribute('value', name);
+            infoEl.setAttribute('value', info);
+            
+            // Visual feedback (Flash white briefly)
+            let oldColor = this.getAttribute('material').color;
+            this.setAttribute('material', 'color', '#FFF');
+            setTimeout(() => {
+                this.setAttribute('material', 'color', oldColor);
+            }, 200);
+          });
+        }
+      });
+    </script>
+
+    <a-scene cursor="rayOrigin: mouse">
+      
+      <a-entity id="env" environment="preset: forest; groundColor: #445; grid: none"></a-entity>
+
+      <a-light type="ambient" color="#FFF" intensity="0.7"></a-light>
+      <a-light type="directional" color="#FFF" intensity="0.8" position="-1 1 0"></a-light>
+
+      <a-entity camera look-controls wasd-controls position="0 1.6 5">
+        <a-cursor color="#00FFFF" scale="0.6 0.6 0.6"></a-cursor>
+      </a-entity>
+
+      <a-entity position="0 3 -5">
+        <a-text value="PRESS 'M' TO OPEN TIME DEVICE" align="center" scale="1.2 1.2 1.2" position="0 1.7 0" color="#FFF"></a-text>
+        
+        <a-plane color="#111" width="6" height="3" position="0 -0.5 0" opacity="0.9" side="double"
+                 material="shader: standard; metalness: 0.5; roughness: 0.2">
+                 
+          <a-text id="wall-title" value="MUSEUM ONLINE" align="center" position="0 1 0.1" scale="1.5 1.5 1.5" color="#00FFFF"></a-text>
+          <a-text id="wall-info" value="Select an Era using your Device." align="center" width="5" position="0 0 0.1" color="#EEE"></a-text>
+        </a-plane>
+      </a-entity>
+
+      <a-entity position="-4 0 -3" rotation="0 30 0">
+        <a-cylinder color="#222" height="1" radius="0.3"></a-cylinder> <a-box id="item1" info-click position="0 1 0" scale="0.5 0.5 0.5" color="#555"
+               animation="property: rotation; to: 0 360 0; loop: true; dur: 8000"></a-box>
+        <a-text id="label1" value="Loading..." align="center" position="0 1.5 0" color="white" scale="0.8 0.8 0.8"></a-text>
+      </a-entity>
+
+      <a-entity position="-2 0 -2.5" rotation="0 15 0">
+        <a-cylinder color="#222" height="1" radius="0.3"></a-cylinder>
+        <a-sphere id="item2" info-click position="0 1 0" scale="0.3 0.3 0.3" color="#555"
+               animation="property: position; to: 0 1.2 0; dir: alternate; loop: true; dur: 2000"></a-sphere>
+        <a-text id="label2" value="Loading..." align="center" position="0 1.5 0" color="white" scale="0.8 0.8 0.8"></a-text>
+      </a-entity>
+
+      <a-entity position="0 0 -2">
+        <a-cylinder color="#222" height="1" radius="0.3"></a-cylinder>
+        <a-dodecahedron id="item3" info-click position="0 1 0" scale="0.4 0.4 0.4" color="#555"
+               animation="property: rotation; to: 360 360 0; loop: true; dur: 10000"></a-dodecahedron>
+        <a-text id="label3" value="Loading..." align="center" position="0 1.5 0" color="white" scale="0.8 0.8 0.8"></a-text>
+      </a-entity>
+
+      <a-entity position="2 0 -2.5" rotation="0 -15 0">
+        <a-cylinder color="#222" height="1" radius="0.3"></a-cylinder>
+        <a-sphere id="item4" info-click position="0 1 0" scale="0.3 0.3 0.3" color="#555"
+               animation="property: position; to: 0 1.2 0; dir: alternate; loop: true; dur: 2000"></a-sphere>
+        <a-text id="label4" value="Loading..." align="center" position="0 1.5 0" color="white" scale="0.8 0.8 0.8"></a-text>
+      </a-entity>
+
+      <a-entity position="4 0 -3" rotation="0 -30 0">
+        <a-cylinder color="#222" height="1" radius="0.3"></a-cylinder>
+        <a-box id="item5" info-click position="0 1 0" scale="0.5 0.5 0.5" color="#555"
+               animation="property: rotation; to: 0 360 0; loop: true; dur: 8000"></a-box>
+        <a-text id="label5" value="Loading..." align="center" position="0 1.5 0" color="white" scale="0.8 0.8 0.8"></a-text>
+      </a-entity>
+
+    </a-scene>
+  </body>
+</html>
