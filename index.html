@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <title>Chrono-Museum: VR Final Project</title>
+    
+    <!-- External Libraries -->
+    <script src="https://aframe.io/releases/1.4.0/aframe.min.js"></script>
+    <script src="https://unpkg.com/aframe-environment-component@1.3.2/dist/aframe-environment-component.min.js"></script>
+
+    <!-- Custom Styles -->
+    <link rel="stylesheet" href="css/main.css">
+  </head>
+  <body>
+    <button id="fullscreen-btn" onclick="App.toggleFullscreen()" style="
+        position: fixed; 
+        bottom: 20px; 
+        right: 20px; 
+        z-index: 10000;
+        background: rgba(0,0,0,0.7); 
+        border: 1px solid #00FFFF; 
+        color: #00FFFF; 
+        padding: 10px 20px;
+        cursor: pointer;
+        font-family: 'Courier New', monospace;
+        font-weight: bold;
+        ">
+        [ ] FULLSCREEN
+    </button>
+
+    <!-- UI LAYER -->
+    <div id="ui-layer">
+      <h1>Chrono-Visor</h1>
+      <h3>Select Time Period</h3>
+      
+      <div class="btn" onclick="App.startWarp('prehistory')">1. Prehistory (3000 BC)</div>
+      <div class="btn" onclick="App.startWarp('classical')">2. Classical Era (500 BC)</div>
+      <div class="btn" onclick="App.startWarp('middleages')">3. Middle Ages (1200 AD)</div>
+      <div class="btn" onclick="App.startWarp('earlymodern')">4. Early Modern (1600 AD)</div>
+      <div class="btn" onclick="App.startWarp('contemporary')">5. Contemporary (2000 AD)</div>
+      
+      <hr style="border: 0; border-top: 1px solid #333; margin: 20px 0;">
+      <div class="btn" onclick="App.toggleCredits()">About Project / Team</div>
+    </div>
+
+    <!-- CREDITS MODAL -->
+    <div id="credits-modal">
+      <h2 style="color:#00FFFF">PROJECT: CHRONO-MUSEUM</h2>
+      <p>A Virtual Reality learning experience exploring human tool development across 5 eras.</p>
+      <h3>DEVELOPMENT TEAM</h3>
+      <ul style="list-style: none; padding: 0;">
+        <li><strong>Lead Developer:</strong> [Your Name Here]</li>
+        <li><strong>3D Artist:</strong> [Member Name]</li>
+        <li><strong>Researcher:</strong> [Member Name]</li>
+      </ul>
+      <div class="btn" style="width: 100px; margin: 0 auto;" onclick="App.toggleCredits()">CLOSE</div>
+    </div>
+
+    <div class="instructions">PRESS 'M' TO TRAVEL TIME</div>
+
+    <!-- A-FRAME SCENE -->
+    <a-scene cursor="rayOrigin: mouse" 
+        raycaster="objects: [info-click]" 
+        vr-mode-ui="enabled: false">
+      
+        <a-entity id="env" environment="preset: forest"></a-entity>
+        <a-entity id="custom-scenery"></a-entity>
+
+        <!-- Camera & Player -->
+        <a-entity camera look-controls wasd-controls position="0 1.6 5">
+        <a-cursor color="#00FFFF" scale="0.8 0.8 0.8"></a-cursor>
+        <!-- Warp Flash Effect -->
+        <a-sphere id="warp-flash" radius="0.5" position="0 0 -0.6" visible="false"
+                    material="shader: flat; color: white; opacity: 0; side: back; transparent: true">
+        </a-sphere>
+        </a-entity>
+
+        <!-- Warp Tunnel Visual -->
+        <a-entity id="warp-tunnel" visible="false">
+        <a-cylinder 
+            position="0 1.6 0" radius="6" height="30" rotation="90 0 0" open-ended="true" side="double"
+            material="shader: standard; color: #00FFFF; wireframe: true; opacity: 0.6; emissive: #00FFFF; emissiveIntensity: 0.5"
+            animation="property: rotation; to: 90 0 360; loop: true; dur: 2000; easing: linear">
+        </a-cylinder>
+        </a-entity>
+
+        <!-- 3D Instructions -->
+        <a-text id="instruction-text-3d" 
+                value="PRESS 'M' TO TRAVEL TIME" 
+                align="center" position="0 2.5 -2" scale="1.2 1.2 1.2" color="#00FFFF"
+                animation="property: opacity; from: 1; to: 0.2; dir: alternate; loop: true; dur: 800">
+        </a-text>
+
+        <!-- Info Wall -->
+        <a-entity position="0 2.5 -5">
+        <a-text value="Interactive History" align="center" position="0 2 0" color="#BBB" scale="0.8 0.8 0.8"></a-text>
+        <a-plane color="#050505" width="6" height="3.5" opacity="0.9" side="double"
+                    material="shader: standard; emissive: #00FFFF; emissiveIntensity: 0.1; border: 1px solid white">
+            <a-text id="wall-title" value="LOADING..." align="center" position="0 1 0.1" scale="1.8 1.8 1.8" color="#00FFFF"></a-text>
+            <a-text id="wall-info" value="Select an artifact to learn more." align="center" width="4.5" position="0 0 0.1" color="#FFF"></a-text>
+        </a-plane>
+        </a-entity>
+
+        <!-- Pedestals (1-5) -->
+        <!-- Item 1 -->
+        <a-entity position="-4 0 -3" rotation="0 30 0">
+        <a-cylinder color="#111" height="1" radius="0.4" material="metalness:0.5"></a-cylinder>
+        <a-box id="item1" info-click position="0 1 0" scale="0.5 0.5 0.5" color="#777" animation="property: rotation; to: 0 360 0; loop: true; dur: 8000"></a-box>
+        <a-text id="label1" value="..." align="center" position="0 1.6 0" scale="0.7 0.7 0.7"></a-text>
+        </a-entity>
+
+        <!-- Item 2 -->
+        <a-entity position="-2 0 -2.5" rotation="0 15 0">
+        <a-cylinder color="#111" height="1" radius="0.4" material="metalness:0.5"></a-cylinder>
+        <a-sphere id="item2" info-click position="0 1 0" scale="0.3 0.3 0.3" color="#777" animation="property: position; to: 0 1.2 0; loop: true; dir: alternate"></a-sphere>
+        <a-text id="label2" value="..." align="center" position="0 1.6 0" scale="0.7 0.7 0.7"></a-text>
+        </a-entity>
+
+        <!-- Item 3 -->
+        <a-entity position="0 0 -2">
+        <a-cylinder color="#111" height="1" radius="0.4" material="metalness:0.5"></a-cylinder>
+        <a-dodecahedron id="item3" info-click position="0 1 0" scale="0.4 0.4 0.4" color="#777" animation="property: rotation; to: 360 360 0; loop: true; dur: 10000"></a-dodecahedron>
+        <a-text id="label3" value="..." align="center" position="0 1.6 0" scale="0.7 0.7 0.7"></a-text>
+        </a-entity>
+
+        <!-- Item 4 -->
+        <a-entity position="2 0 -2.5" rotation="0 -15 0">
+        <a-cylinder color="#111" height="1" radius="0.4" material="metalness:0.5"></a-cylinder>
+        <a-sphere id="item4" info-click position="0 1 0" scale="0.3 0.3 0.3" color="#777" animation="property: position; to: 0 1.2 0; loop: true; dir: alternate"></a-sphere>
+        <a-text id="label4" value="..." align="center" position="0 1.6 0" scale="0.7 0.7 0.7"></a-text>
+        </a-entity>
+
+        <!-- Item 5 -->
+        <a-entity position="4 0 -3" rotation="0 -30 0">
+        <a-cylinder color="#111" height="1" radius="0.4" material="metalness:0.5"></a-cylinder>
+        <a-box id="item5" info-click position="0 1 0" scale="0.5 0.5 0.5" color="#777" animation="property: rotation; to: 0 360 0; loop: true; dur: 8000"></a-box>
+        <a-text id="label5" value="..." align="center" position="0 1.6 0" scale="0.7 0.7 0.7"></a-text>
+        </a-entity>
+
+    </a-scene>
+
+    <!-- Project Logic Scripts (Order Matters) -->
+    <script src="js/data.js"></script>
+    <script src="js/components.js"></script>
+    <script src="js/app.js"></script>
+  </body>
+</html>
