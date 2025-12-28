@@ -3,12 +3,13 @@
 ### 🚀 Project Overview
 Chrono-Museum is an immersive Virtual Reality application built for the web. It allows users to travel through five distinct eras of human history—from Prehistory to the Contemporary Age—to explore the evolution of technology and tools.
 
-**Live Demo:** [PASTE YOUR GITHUB PAGES LINK HERE]
+**Live Demo:** https://github.com/cheachy/chrono-museum.git
 
 ### 🛠️ Technology Stack
 * **Framework:** A-Frame (WebVR)
 * **Environment:** A-Frame Environment Component
-* **Languages:** HTML5, JavaScript (ES6)
+* **Languages:** HTML5, CSS, Node Javascript (ES6)
+* **Database:** MongoDB Atlas
 * **Platform:** Web Browser (Desktop & Mobile VR compatible)
 
 ### 🎮 Controls
@@ -17,11 +18,12 @@ Chrono-Museum is an immersive Virtual Reality application built for the web. It 
 * **Interaction:** Click on artifacts to read historical data.
 
 ### 👥 Team Roles & Responsibilities
-* **[Your Name]:** Lead Developer - Implemented A-Frame logic, warp system, and DOM manipulation.
-* **[Member Name]:** 3D Artist - Sourced GLB assets and designed the layout.
-* **[Member Name]:** Researcher - Curated historical data for the artifacts.
+* **Charmie Rafols:** Lead Developer - Implemented A-Frame logic, warp system, and DOM manipulation.
+* **Psamm Gabriel Jonio:** 3D Artist - Sourced GLB assets and designed the layout.
+* **Jounes Quezzagan:** Researcher - Curated historical data for the artifacts.
 
 ### 📜 Installation (Local)
 1. Clone the repository.
-2. Open `index.html` in any modern web browser.
-3. No build process required (Vanilla JS).
+2. Ensure to have .env file and copy the API keys.
+3. Install the modules by running npm install.
+4. Now you can run node server.js.

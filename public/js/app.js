@@ -2,58 +2,62 @@ const App = {
   isWarping: false,
 
   init: function() {
+    // 1. Listen for the 'M' key to open the menu
     window.addEventListener('keydown', (e) => {
       if(e.key.toLowerCase() === 'm') this.toggleMenu();
     });
-    // Start in Prehistory
-    this.loadEra('prehistory');
+    
+    // 2. Load the first era immediately
+    this.startWarp('prehistory');
   },
 
-  toggleFullscreen: function() {
-    if (!document.fullscreenElement) {
-        document.documentElement.requestFullscreen();
-    } else {
-        if (document.exitFullscreen) {
-        document.exitFullscreen();
-        }
+  // --- SERVER API CALL ---
+  fetchEraData: async function(eraKey) {
+    try {
+      // Calls http://localhost:3000/api/eras/prehistory
+      const response = await fetch(`/api/eras/${eraKey}`);
+      
+      if (!response.ok) throw new Error('Network response was not ok');
+      
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.error("Server Error:", error);
+      return null;
     }
-    },
-
-  toggleMenu: function() {
-    document.getElementById('ui-layer').classList.toggle('visible');
-    const instructions3D = document.querySelector('#instruction-text-3d');
-    if(instructions3D) instructions3D.setAttribute('visible', 'false');
   },
 
-  toggleCredits: function() {
-    const modal = document.getElementById('credits-modal');
-    modal.style.display = modal.style.display === 'block' ? 'none' : 'block';
-  },
-
-  startWarp: function(eraKey) {
+  startWarp: async function(eraKey) {
     if(this.isWarping) return;
     this.isWarping = true;
     
+    // UI Feedback
     document.getElementById('ui-layer').classList.remove('visible');
-
     const tunnel = document.getElementById('warp-tunnel');
     const flash = document.getElementById('warp-flash');
-    
-    // 1. Show effects
+    const wallTitle = document.querySelector('#wall-title');
+
+    // Show effects
     tunnel.setAttribute('visible', 'true');
     flash.setAttribute('visible', 'true');
-    
-    // 2. Animate to white
     flash.setAttribute('animation', 'property: material.opacity; from: 0; to: 1; dur: 1500; easing: easeInQuad');
-    
-    // 3. Wait, then swap
+    wallTitle.setAttribute('value', "CONNECTING TO SERVER...");
+
+    // Fetch data from Node.js Server
+    const eraData = await this.fetchEraData(eraKey);
+
     setTimeout(() => {
-      this.loadEra(eraKey); 
+      if(eraData) {
+        // If we got data, load it!
+        this.loadEraToScene(eraData.id, eraData);
+      } else {
+        // Fallback if database is empty/offline
+        wallTitle.setAttribute('value', "DATABASE ERROR");
+      }
       
-      // 4. Fade Out
+      // Fade Out
       flash.setAttribute('animation', 'property: material.opacity; from: 1; to: 0; dur: 1500; easing: easeOutQuad');
       
-      // 5. Hide effects and unlock clicks
       setTimeout(() => {
         tunnel.setAttribute('visible', 'false');
         flash.setAttribute('visible', 'false'); 
@@ -63,25 +67,32 @@ const App = {
     }, 1500);
   },
 
-  loadEra: function(eraKey) {
-    const data = DB[eraKey];
-    
-    document.querySelector('#env').setAttribute('environment', data.env);
-    this.buildScenery(eraKey);
+  loadEraToScene: function(eraKey, data) {
+    // Safety check: Ensure environment exists before setting it
+    const envEl = document.querySelector('#env');
+    if(envEl) envEl.setAttribute('environment', data.env);
+
     document.querySelector('#wall-title').setAttribute('value', "ERA: " + eraKey.toUpperCase());
+    document.querySelector('#wall-info').setAttribute('value', "Select an artifact to learn more.");
+    
+    this.buildScenery(eraKey);
     
     for (let i = 0; i < 5; i++) {
-      let label = document.querySelector('#label' + (i+1));
-      let itemEntity = document.querySelector('#item' + (i+1));
-      
-      label.setAttribute('value', data.items[i].name);
-      itemEntity.setAttribute('data-name', data.items[i].name);
-      itemEntity.setAttribute('data-info', data.items[i].info);
+        let label = document.querySelector('#label' + (i+1));
+        let itemEntity = document.querySelector('#item' + (i+1));
+        
+        // Only update if the item exists in the database
+        if(data.items && data.items[i]) {
+            label.setAttribute('value', data.items[i].name);
+            itemEntity.setAttribute('data-name', data.items[i].name);
+            itemEntity.setAttribute('data-info', data.items[i].info);
+        }
     }
   },
 
   buildScenery: function(era) {
     const container = document.getElementById('custom-scenery');
+    if(!container) return; // Safety check
     container.innerHTML = ''; 
 
     if(era === 'prehistory') {
@@ -146,8 +157,36 @@ const App = {
      floor.setAttribute('color', '#6d5638');
      floor.setAttribute('position', '0 0.1 0');
      container.appendChild(floor);
+  },
+
+  toggleMenu: function() {
+    const scene = document.querySelector('a-scene');
+    const uiLayer = document.getElementById('ui-layer');
+    const instructions3D = document.querySelector('#instruction-text-3d');
+
+    if (scene.is('vr-mode')) scene.exitVR();
+    uiLayer.classList.toggle('visible');
+    if(instructions3D) instructions3D.setAttribute('visible', 'false');
+  },
+  
+  toggleCredits: function() {
+    const modal = document.getElementById('credits-modal');
+    modal.style.display = modal.style.display === 'block' ? 'none' : 'block';
+  },
+
+  toggleFullscreen: function() {
+    if (!document.fullscreenElement) {
+      document.documentElement.requestFullscreen();
+    } else {
+      if (document.exitFullscreen) document.exitFullscreen();
+    }
   }
 };
 
-// Initialize App once DOM is ready
-window.onload = function() { App.init(); };
+// Make App available globally (for HTML buttons)
+window.App = App;
+
+// Start the app when the page is ready
+window.onload = function() {
+    App.init();
+};
