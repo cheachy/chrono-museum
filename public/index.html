@@ -3,6 +3,7 @@
   <head>
     <meta charset="UTF-8">
     <title>Chrono-Museum: VR Final Project</title>
+    <link rel="icon" href="data:,">
     
     <!-- External Libraries -->
     <script src="https://aframe.io/releases/1.4.0/aframe.min.js"></script>
@@ -22,7 +23,7 @@
       </div>
     </div>
 
-    <button id="fullscreen-btn" class="hidden-ui" onclick="App.toggleFullscreen()" style="
+    <button id="fullscreen-btn" class="hidden-ui" onclick="UIController.toggleFullscreen()" style="
         position: fixed; 
         bottom: 20px; 
         right: 20px; 
@@ -50,7 +51,7 @@
       <div class="btn" onclick="App.startWarp('contemporary')">5. Contemporary (2000 AD)</div>
       
       <hr style="border: 0; border-top: 1px solid #333; margin: 20px 0;">
-      <div class="btn" onclick="App.toggleCredits()">About Project / Team</div>
+      <div class="btn" onclick="UIController.toggleCredits()">About Project / Team</div>
     </div>
 
     <!-- CREDITS MODAL -->
@@ -63,14 +64,23 @@
         <li><strong>3D Artist:</strong>Psahmm Gabriel Jonio</li>
         <li><strong>Researcher:</strong>Jounes Quezzagan</li>
       </ul>
-      <div class="btn" style="width: 100px; margin: 0 auto;" onclick="App.toggleCredits()">CLOSE</div>
+      <div class="btn" style="width: 100px; margin: 0 auto;" onclick="UIController.toggleCredits()">CLOSE</div>
     </div>
 
     <div class="instructions" class="hidden-ui">PRESS 'M' TO TRAVEL TIME</div>
 
     <!-- A-FRAME SCENE -->
     <a-scene cursor="rayOrigin: mouse" raycaster="objects: [info-click]" vr-mode-ui="enabled: false">
-          
+      
+      <!-- ASSETS - Preload 3D models -->
+      <a-assets>
+        <a-asset-item id="volcano-model" src="assets/prehistory/volcano.glb"></a-asset-item>
+        <a-asset-item id="large-bone-model" src="assets/prehistory/large_bone.glb"></a-asset-item>
+      </a-assets>
+      
+      <!-- Background Models Container -->
+      <a-entity id="background-models"></a-entity>
+      
       <!-- 1. DYNAMIC ATMOSPHERE (Default is Starry Void) -->
       <a-entity id="env" environment="preset: starry; fog: 0.6; groundColor: #111; grid: none"></a-entity>
       
@@ -120,7 +130,7 @@
       <a-entity position="0 2.5 -5">
         <a-text value="Interactive History" align="center" position="0 2 0" color="#BBB" scale="0.8 0.8 0.8"></a-text>
         <a-plane color="#050505" width="6" height="3.5" opacity="0.9" side="double"
-                material="shader: standard; emissive: #00FFFF; emissiveIntensity: 0.1; border: 1px solid white">
+                material="shader: standard; emissive: #00FFFF; emissiveIntensity: 0.1">
           <a-text id="wall-title" value="SYSTEM STANDBY" align="center" position="0 1 0.1" scale="1.8 1.8 1.8" color="#00FFFF"></a-text>
           <a-text id="wall-info" value="Waiting for user initialization..." align="center" width="4.5" position="0 0 0.1" color="#FFF"></a-text>
         </a-plane>
@@ -195,7 +205,17 @@
     </a-scene>
 
     <!-- Project Logic Scripts (Order Matters) -->
+    <script src="js/data.js"></script>
     <script src="js/components.js"></script>
+    <script src="js/audio.js"></script>
+    <script src="js/dataService.js"></script>
+    <script src="js/sceneManager.js"></script>
+    <script src="js/uiController.js"></script>
     <script src="js/app.js"></script>
+    
+    <!-- Expose UIController globally for HTML onclick handlers -->
+    <script>
+      window.UIController = UIController;
+    </script>
   </body>
 </html>
