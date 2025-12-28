@@ -12,7 +12,17 @@
     <link rel="stylesheet" href="css/main.css">
   </head>
   <body>
-    <button id="fullscreen-btn" onclick="App.toggleFullscreen()" style="
+
+    <!-- START SCREEN -->
+    <div id="start-screen">
+      <div class="logo-box">
+        <h1>Chrono<br>Museum</h1>
+        <p>VR LEARNING INITIATIVE</p>
+        <button id="start-btn" onclick="App.enterExperience()">Initialize System</button>
+      </div>
+    </div>
+
+    <button id="fullscreen-btn" class="hidden-ui" onclick="App.toggleFullscreen()" style="
         position: fixed; 
         bottom: 20px; 
         right: 20px; 
@@ -25,11 +35,11 @@
         font-family: 'Courier New', monospace;
         font-weight: bold;
         ">
-        [ ] FULLSCREEN
+        FULLSCREEN
     </button>
 
     <!-- UI LAYER -->
-    <div id="ui-layer">
+    <div id="ui-layer" class="hidden-ui">
       <h1>Chrono-Visor</h1>
       <h3>Select Time Period</h3>
       
@@ -49,93 +59,138 @@
       <p>A Virtual Reality learning experience exploring human tool development across 5 eras.</p>
       <h3>DEVELOPMENT TEAM</h3>
       <ul style="list-style: none; padding: 0;">
-        <li><strong>Lead Developer:</strong> [Your Name Here]</li>
-        <li><strong>3D Artist:</strong> [Member Name]</li>
-        <li><strong>Researcher:</strong> [Member Name]</li>
+        <li><strong>Lead Developer:</strong>Charmie Rafols</li>
+        <li><strong>3D Artist:</strong>Psahmm Gabriel Jonio</li>
+        <li><strong>Researcher:</strong>Jounes Quezzagan</li>
       </ul>
       <div class="btn" style="width: 100px; margin: 0 auto;" onclick="App.toggleCredits()">CLOSE</div>
     </div>
 
-    <div class="instructions">PRESS 'M' TO TRAVEL TIME</div>
+    <div class="instructions" class="hidden-ui">PRESS 'M' TO TRAVEL TIME</div>
 
     <!-- A-FRAME SCENE -->
-    <a-scene cursor="rayOrigin: mouse" 
-        raycaster="objects: [info-click]" 
-        vr-mode-ui="enabled: false">
+    <a-scene cursor="rayOrigin: mouse" raycaster="objects: [info-click]" vr-mode-ui="enabled: false">
+          
+      <!-- 1. DYNAMIC ATMOSPHERE (Default is Starry Void) -->
+      <a-entity id="env" environment="preset: starry; fog: 0.6; groundColor: #111; grid: none"></a-entity>
       
-        <a-entity id="env" environment="preset: forest"></a-entity>
-        <a-entity id="custom-scenery"></a-entity>
+      <!-- 2. LIGHTING UPGRADE -->
+      <a-entity light="type: ambient; color: #BBB; intensity: 0.5"></a-entity>
+      <a-entity light="type: directional; color: #FFF; intensity: 0.8; castShadow: true" position="-1 1 0"></a-entity>
+      <a-entity light="type: point; color: #00FFFF; intensity: 0.5; distance: 10" position="0 2 0"></a-entity>
 
-        <!-- Camera & Player -->
-        <a-entity camera look-controls wasd-controls position="0 1.6 5">
+      <!-- 3. FUTURISTIC PLATFORM (The 'Time Machine' Base) -->
+      <a-entity position="0 0.1 0">
+        <!-- Main Disc -->
+        <a-cylinder radius="6" height="0.2" color="#222" material="metalness: 0.8; roughness: 0.2"></a-cylinder>
+        <!-- Glowing Ring -->
+        <a-ring radius-inner="5.5" radius-outer="5.8" rotation="-90 0 0" position="0 0.11 0" 
+                material="shader: flat; color: #00FFFF; opacity: 0.8"
+                animation="property: scale; from: 1 1 1; to: 1.05 1.05 1.05; dir: alternate; dur: 2000; loop: true"></a-ring>
+        <!-- Inner Grid -->
+        <a-circle radius="5.5" rotation="-90 0 0" position="0 0.12 0" 
+                  material="src: url(https://cdn.aframe.io/a-painter/images/floor.jpg); repeat: 10 10; transparent: true; opacity: 0.3; color: #00FFFF"></a-circle>
+      </a-entity>
+
+      <a-entity id="custom-scenery"></a-entity>
+
+      <!-- Camera & Player -->
+      <a-entity camera look-controls wasd-controls position="0 1.6 5">
         <a-cursor color="#00FFFF" scale="0.8 0.8 0.8"></a-cursor>
-        <!-- Warp Flash Effect -->
         <a-sphere id="warp-flash" radius="0.5" position="0 0 -0.6" visible="false"
-                    material="shader: flat; color: white; opacity: 0; side: back; transparent: true">
+                  material="shader: flat; color: white; opacity: 0; side: back; transparent: true">
         </a-sphere>
-        </a-entity>
+      </a-entity>
 
-        <!-- Warp Tunnel Visual -->
-        <a-entity id="warp-tunnel" visible="false">
-        <a-cylinder 
-            position="0 1.6 0" radius="6" height="30" rotation="90 0 0" open-ended="true" side="double"
-            material="shader: standard; color: #00FFFF; wireframe: true; opacity: 0.6; emissive: #00FFFF; emissiveIntensity: 0.5"
-            animation="property: rotation; to: 90 0 360; loop: true; dur: 2000; easing: linear">
+      <!-- ... (Keep your Warp Tunnel, Text, and Item Pedestals exactly as they were) ... -->
+      <!-- WARP TUNNEL -->
+      <a-entity id="warp-tunnel" visible="false">
+        <a-cylinder position="0 1.6 0" radius="6" height="30" rotation="90 0 0" open-ended="true" side="double"
+          material="shader: standard; color: #00FFFF; wireframe: true; opacity: 0.6; emissive: #00FFFF; emissiveIntensity: 0.5"
+          animation="property: rotation; to: 90 0 360; loop: true; dur: 2000; easing: linear">
         </a-cylinder>
-        </a-entity>
+      </a-entity>
 
-        <!-- 3D Instructions -->
-        <a-text id="instruction-text-3d" 
-                value="PRESS 'M' TO TRAVEL TIME" 
-                align="center" position="0 2.5 -2" scale="1.2 1.2 1.2" color="#00FFFF"
-                animation="property: opacity; from: 1; to: 0.2; dir: alternate; loop: true; dur: 800">
-        </a-text>
+      <!-- INSTRUCTIONS -->
+      <a-text id="instruction-text-3d" value="PRESS 'M' TO TRAVEL TIME" align="center" position="0 2.5 -2" 
+              scale="1.2 1.2 1.2" color="#00FFFF" animation="property: opacity; from: 1; to: 0.2; dir: alternate; loop: true; dur: 800">
+      </a-text>
 
-        <!-- Info Wall -->
-        <a-entity position="0 2.5 -5">
+      <!-- INFO WALL -->
+      <a-entity position="0 2.5 -5">
         <a-text value="Interactive History" align="center" position="0 2 0" color="#BBB" scale="0.8 0.8 0.8"></a-text>
         <a-plane color="#050505" width="6" height="3.5" opacity="0.9" side="double"
-                    material="shader: standard; emissive: #00FFFF; emissiveIntensity: 0.1; border: 1px solid white">
-            <a-text id="wall-title" value="LOADING..." align="center" position="0 1 0.1" scale="1.8 1.8 1.8" color="#00FFFF"></a-text>
-            <a-text id="wall-info" value="Select an artifact to learn more." align="center" width="4.5" position="0 0 0.1" color="#FFF"></a-text>
+                material="shader: standard; emissive: #00FFFF; emissiveIntensity: 0.1; border: 1px solid white">
+          <a-text id="wall-title" value="SYSTEM STANDBY" align="center" position="0 1 0.1" scale="1.8 1.8 1.8" color="#00FFFF"></a-text>
+          <a-text id="wall-info" value="Waiting for user initialization..." align="center" width="4.5" position="0 0 0.1" color="#FFF"></a-text>
         </a-plane>
-        </a-entity>
+      </a-entity>
 
-        <!-- Pedestals (1-5) -->
-        <!-- Item 1 -->
-        <a-entity position="-4 0 -3" rotation="0 30 0">
+      <!-- ITEM PEDESTALS (Keep your existing items 1-5 here) -->
+      <!-- ITEM 1 -->
+      <a-entity position="-4 0 -3" rotation="0 30 0">
         <a-cylinder color="#111" height="1" radius="0.4" material="metalness:0.5"></a-cylinder>
-        <a-box id="item1" info-click position="0 1 0" scale="0.5 0.5 0.5" color="#777" animation="property: rotation; to: 0 360 0; loop: true; dur: 8000"></a-box>
-        <a-text id="label1" value="..." align="center" position="0 1.6 0" scale="0.7 0.7 0.7"></a-text>
+        <a-entity id="item1" info-click position="0 1 0" animation="property: rotation; to: 0 360 0; loop: true; dur: 8000">
+            <!-- ✅ CORRECT -->
+            <a-box id="fallback-item1" color="#777" scale="0.5 0.5 0.5" visible="true"></a-box>
         </a-entity>
+        <a-entity position="0 1.6 0">
+          <a-plane color="black" opacity="0.6" width="1.5" height="0.4"></a-plane>
+          <a-text id="label1" value="..." align="center" width="4" position="0 0 0.01"></a-text>
+        </a-entity>
+      </a-entity>
 
-        <!-- Item 2 -->
-        <a-entity position="-2 0 -2.5" rotation="0 15 0">
+      <!-- ITEM 2 -->
+      <a-entity position="-2 0 -2.5" rotation="0 15 0">
         <a-cylinder color="#111" height="1" radius="0.4" material="metalness:0.5"></a-cylinder>
-        <a-sphere id="item2" info-click position="0 1 0" scale="0.3 0.3 0.3" color="#777" animation="property: position; to: 0 1.2 0; loop: true; dir: alternate"></a-sphere>
-        <a-text id="label2" value="..." align="center" position="0 1.6 0" scale="0.7 0.7 0.7"></a-text>
+        <a-entity id="item2" info-click position="0 1 0" animation="property: rotation; to: 0 360 0; loop: true; dur: 8000">
+            <!-- ⚠️ CHANGED FROM fallback-item1 TO fallback-item2 -->
+            <a-box id="fallback-item2" color="#777" scale="0.5 0.5 0.5" visible="true"></a-box>
         </a-entity>
+        <a-entity position="0 1.6 0">
+          <a-plane color="black" opacity="0.6" width="1.5" height="0.4"></a-plane>
+          <a-text id="label2" value="..." align="center" width="4" position="0 0 0.01"></a-text>
+        </a-entity>
+      </a-entity>
 
-        <!-- Item 3 -->
-        <a-entity position="0 0 -2">
+      <!-- ITEM 3 -->
+      <a-entity position="0 0 -2" rotation="0 30 0">
         <a-cylinder color="#111" height="1" radius="0.4" material="metalness:0.5"></a-cylinder>
-        <a-dodecahedron id="item3" info-click position="0 1 0" scale="0.4 0.4 0.4" color="#777" animation="property: rotation; to: 360 360 0; loop: true; dur: 10000"></a-dodecahedron>
-        <a-text id="label3" value="..." align="center" position="0 1.6 0" scale="0.7 0.7 0.7"></a-text>
+        <a-entity id="item3" info-click position="0 1 0" animation="property: rotation; to: 0 360 0; loop: true; dur: 8000">
+            <!-- ⚠️ CHANGED TO fallback-item3 -->
+            <a-box id="fallback-item3" color="#777" scale="0.5 0.5 0.5" visible="true"></a-box>
         </a-entity>
+        <a-entity position="0 1.6 0">
+          <a-plane color="black" opacity="0.6" width="1.5" height="0.4"></a-plane>
+          <a-text id="label3" value="..." align="center" width="4" position="0 0 0.01"></a-text>
+        </a-entity>
+      </a-entity>
 
-        <!-- Item 4 -->
-        <a-entity position="2 0 -2.5" rotation="0 -15 0">
+      <!-- ITEM 4 -->
+      <a-entity position="2 0 -2.5" rotation="0 30 0">
         <a-cylinder color="#111" height="1" radius="0.4" material="metalness:0.5"></a-cylinder>
-        <a-sphere id="item4" info-click position="0 1 0" scale="0.3 0.3 0.3" color="#777" animation="property: position; to: 0 1.2 0; loop: true; dir: alternate"></a-sphere>
-        <a-text id="label4" value="..." align="center" position="0 1.6 0" scale="0.7 0.7 0.7"></a-text>
+        <a-entity id="item4" info-click position="0 1 0" animation="property: rotation; to: 0 360 0; loop: true; dur: 8000">
+            <!-- ⚠️ CHANGED TO fallback-item4 -->
+            <a-box id="fallback-item4" color="#777" scale="0.5 0.5 0.5" visible="true"></a-box>
         </a-entity>
+        <a-entity position="0 1.6 0">
+          <a-plane color="black" opacity="0.6" width="1.5" height="0.4"></a-plane>
+          <a-text id="label4" value="..." align="center" width="4" position="0 0 0.01"></a-text>
+        </a-entity>
+      </a-entity>
 
-        <!-- Item 5 -->
-        <a-entity position="4 0 -3" rotation="0 -30 0">
+      <!-- ITEM 5 -->
+      <a-entity position="4 0 -3" rotation="0 30 0">
         <a-cylinder color="#111" height="1" radius="0.4" material="metalness:0.5"></a-cylinder>
-        <a-box id="item5" info-click position="0 1 0" scale="0.5 0.5 0.5" color="#777" animation="property: rotation; to: 0 360 0; loop: true; dur: 8000"></a-box>
-        <a-text id="label5" value="..." align="center" position="0 1.6 0" scale="0.7 0.7 0.7"></a-text>
+        <a-entity id="item5" info-click position="0 1 0" animation="property: rotation; to: 0 360 0; loop: true; dur: 8000">
+            <!-- ⚠️ CHANGED TO fallback-item5 -->
+            <a-box id="fallback-item5" color="#777" scale="0.5 0.5 0.5" visible="true"></a-box>
         </a-entity>
+        <a-entity position="0 1.6 0">
+          <a-plane color="black" opacity="0.6" width="1.5" height="0.4"></a-plane>
+          <a-text id="label5" value="..." align="center" width="4" position="0 0 0.01"></a-text>
+        </a-entity>
+      </a-entity>
 
     </a-scene>
 

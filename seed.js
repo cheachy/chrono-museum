@@ -1,3 +1,4 @@
+require('dotenv').config()
 const mongoose = require('mongoose');
 
 // REPLACE with your Connection String
@@ -8,55 +9,55 @@ const DB = [
     id: "prehistory",
     env: "preset: forest; fog: 0.7; skyType: atmosphere; groundColor: #3d2c20", 
     items: [
-      { name: "Stone Axe", info: "The first lever machine used by early humans." },
-      { name: "Fire Pit", info: "Marks the mastery of energy control." },
-      { name: "Cave Art", info: "The birth of abstract communication." },
-      { name: "Bone Needle", info: "The beginning of complex textile manufacturing." },
-      { name: "Woven Basket", info: "Early logistics: transporting goods." }
+      { name: "Stone Axe", info: "The first lever machine used by early humans.", model: "assets/prehistory/axe.glb", scale: "0.25 0.25 0.25"},
+      { name: "Fire Pit", info: "Marks the mastery of energy control.", model: "assets/prehistory/bonfire.glb", scale: "1 1 1"},
+      { name: "Cave Art", info: "The birth of abstract communication.", model: "assets/prehistory/cave.glb", scale: "0.5 0.5 0.5"},
+      { name: "Bone Needle", info: "The beginning of complex textile manufacturing.", model: "assets/prehistory/bone.glb", scale: "0.5 0.5 0.5"},
+      { name: "Woven Basket", info: "Early logistics: transporting goods.", model: "assets/prehistory/basket.glb", scale: "0.1 0.1 0.1"}
     ]
   },
   {
     id: "classical",
     env: "preset: egypt; skyType: gradient; lighting: distant; groundColor: #e6c288",
     items: [
-      { name: "Amphora", info: "Standardized shipping container of the ancient world." },
-      { name: "Legion Helmet", info: "Mass-produced armor for professional armies." },
-      { name: "Papyrus", info: "Portable information storage." },
-      { name: "Marble Bust", info: "Political propaganda through art." },
-      { name: "Gold Coin", info: "Standardized currency enabling global trade." }
+      { name: "Amphora", info: "Standardized shipping container of the ancient world.", model: "assets/classical/amphora.glb", scale: "0.5 0.5 0.5"},
+      { name: "Legion Helmet", info: "Mass-produced armor for professional armies.", model: "assets/classical/helmet.glb", scale: "0.01 0.01 0.01" },
+      { name: "Papyrus", info: "Portable information storage.", model: "assets/classical/papyrus.glb", scale: "0.5 0.5 0.5"},
+      { name: "Marble Bust", info: "Political propaganda through art.", model: "assets/classical/bust.glb", scale: "0.4 0.4 0.4"},
+      { name: "Gold Coin", info: "Standardized currency enabling global trade.", model: "assets/classical/coin.glb", scale: "0.5 0.5 0.5"}
     ]
   },
   {
     id: "middleages",
     env: "preset: starry; fog: 0.5; groundColor: #1a1a1a; grid: none",
     items: [
-      { name: "Iron Sword", info: "High-carbon steel metallurgy." },
-      { name: "Shield", info: "Heraldry: The first visual ID systems." },
-      { name: "Crown", info: "Centralized authority and feudalism." },
-      { name: "Cross", info: "The unifying power of organized religion." },
-      { name: "Manuscript", info: "Preservation of knowledge by monastic orders." }
+      { name: "Iron Sword", info: "High-carbon steel metallurgy.", model: "assets/middle/sword.glb", scale: "0.5 0.5 0.5", rotation:"0 0 90"},
+      { name: "Shield", info: "Heraldry: The first visual ID systems.", model: "assets/middle/shield.glb", scale: "0.25 0.25 0.25"},
+      { name: "Crown", info: "Centralized authority and feudalism.", model: "assets/middle/crown.glb", scale: "0.4 0.4 0.4"},
+      { name: "Cross", info: "The unifying power of organized religion.", model: "assets/middle/cross.glb", scale: "0.5 0.5 0.5", rotation:"-90 0 0"},
+      { name: "Manuscript", info: "Preservation of knowledge by monastic orders.", model: "assets/middle/manuscript.glb", scale: "0.5 0.5 0.5"}
     ]
   },
   {
     id: "earlymodern",
     env: "preset: arches; skyType: atmosphere; lighting: distant; groundColor: #8f7e6b",
     items: [
-      { name: "Compass", info: "Global navigation and the Age of Discovery." },
-      { name: "Printing Press", info: "Democratization of information." },
-      { name: "Telescope", info: "Scientific observation challenging dogma." },
-      { name: "Gunpowder", info: "The end of walled fortifications." },
-      { name: "Spices", info: "Commodities that drove global colonization." }
+      { name: "Compass", info: "Global navigation and the Age of Discovery.", model: "assets/modern/compass.glb", scale: "0.5 0.5 0.5"},
+      { name: "Printing Press", info: "Democratization of information.", model: "assets/modern/printer.glb", scale: "1 1 1"},
+      { name: "Telescope", info: "Scientific observation challenging dogma.", model: "assets/modern/telescope.glb", scale: "0.5 0.5 0.5"},
+      { name: "Gunpowder", info: "The end of walled fortifications.", model: "assets/modern/gunpowder.glb", scale: "1.5 1.5 1.5"},
+      { name: "Spices", info: "Commodities that drove global colonization.", model: "assets/modern/spices.glb", scale: "1 1 1"}
     ]
   },
   {
     id: "contemporary",
     env: "preset: tron; grid: 1x1; groundColor: #000; skyType: gradient",
     items: [
-      { name: "Microchip", info: "The brain of the Information Age." },
-      { name: "Rocket", info: "Expanding humanity beyond Earth." },
-      { name: "Smartphone", info: "Sum of all human knowledge in your pocket." },
-      { name: "Plastic", info: "Synthetic materials: Blessing and curse." },
-      { name: "Robot Arm", info: "Automation and the future of labor." }
+      { name: "Microchip", info: "The brain of the Information Age.", model: "assets/contemporary/microchip.glb", scale: "0.2 0.2 0.2"},
+      { name: "Rocket", info: "Expanding humanity beyond Earth.", model: "assets/contemporary/rocket.glb", scale: "0.05 0.05 0.05"},
+      { name: "Smartphone", info: "Sum of all human knowledge in your pocket.", model: "assets/contemporary/phone.glb", scale: "0.5 0.5 0.5"},
+      { name: "Plastic", info: "Synthetic materials: Blessing and curse.", model: "assets/contemporary/plastic.glb", scale: "0.1 0.1 0.1"},
+      { name: "Robot Arm", info: "Automation and the future of labor.", model: "assets/contemporary/robotarm.glb", scale: "0.5 0.5 0.5"}
     ]
   }
 ];
@@ -70,7 +71,7 @@ mongoose.connect(MONGO_URI)
     await Era.deleteMany({}); // Clear old data
     console.log('Inserting new data...');
     await Era.insertMany(DB);
-    console.log('✅ Data Seeded Successfully!');
+    console.log('Data Seeded Successfully!');
     process.exit();
   })
   .catch(err => {

@@ -1,14 +1,52 @@
+const AudioEngine = {
+  ctx: null,
+  osc: null,
+  gain: null,
+
+  init: function() {
+    // Only start audio after user interaction (browser policy)
+    const AudioContext = window.AudioContext || window.webkitAudioContext;
+    this.ctx = new AudioContext();
+    
+    this.osc = this.ctx.createOscillator();
+    this.gain = this.ctx.createGain();
+    
+    this.osc.connect(this.gain);
+    this.gain.connect(this.ctx.destination);
+    
+    this.osc.type = 'sine';
+    this.osc.frequency.value = 100; // Deep drone
+    this.gain.gain.value = 0.15; // Very quiet
+    
+    this.osc.start();
+  },
+
+  setEra: function(era) {
+    if(!this.ctx) return;
+    
+    // Change sound based on Era
+    const now = this.ctx.currentTime;
+    
+    if(era === 'prehistory') {
+        this.osc.frequency.linearRampToValueAtTime(60, now + 2); // Deep, primitive
+        this.osc.type = 'triangle';
+    } else if (era === 'contemporary') {
+        this.osc.frequency.linearRampToValueAtTime(200, now + 2); // High, digital
+        this.osc.type = 'sine';
+    } else {
+        this.osc.frequency.linearRampToValueAtTime(100, now + 2); // Neutral
+        this.osc.type = 'sine';
+    }
+  }
+};
+
 const App = {
   isWarping: false,
 
   init: function() {
-    // 1. Listen for the 'M' key to open the menu
     window.addEventListener('keydown', (e) => {
       if(e.key.toLowerCase() === 'm') this.toggleMenu();
     });
-    
-    // 2. Load the first era immediately
-    this.startWarp('prehistory');
   },
 
   // --- SERVER API CALL ---
@@ -68,95 +106,138 @@ const App = {
   },
 
   loadEraToScene: function(eraKey, data) {
-    // Safety check: Ensure environment exists before setting it
-    const envEl = document.querySelector('#env');
-    if(envEl) envEl.setAttribute('environment', data.env);
+    // 1. Set Environment safely
+    const env = document.querySelector('#env');
+    if(env) env.setAttribute('environment', data.env);
 
-    document.querySelector('#wall-title').setAttribute('value', "ERA: " + eraKey.toUpperCase());
-    document.querySelector('#wall-info').setAttribute('value', "Select an artifact to learn more.");
+    // 2. Set Wall Text safely
+    const title = document.querySelector('#wall-title');
+    const info = document.querySelector('#wall-info');
+    if(title) title.setAttribute('value', "ERA: " + eraKey.toUpperCase());
+    if(info) info.setAttribute('value', "Select an artifact to learn more.");
     
+    // 3. Build Scenery
     this.buildScenery(eraKey);
     
+    // 4. Update Items
+    // UPDATE ITEMS
     for (let i = 0; i < 5; i++) {
         let label = document.querySelector('#label' + (i+1));
         let itemEntity = document.querySelector('#item' + (i+1));
+        let fallback = document.querySelector('#fallback-item' + (i+1));
         
-        // Only update if the item exists in the database
-        if(data.items && data.items[i]) {
-            label.setAttribute('value', data.items[i].name);
-            itemEntity.setAttribute('data-name', data.items[i].name);
-            itemEntity.setAttribute('data-info', data.items[i].info);
+        if(label && itemEntity && data.items && data.items[i]) {
+            let itemData = data.items[i];
+
+            // 1. Update Text
+            label.setAttribute('value', itemData.name);
+            itemEntity.setAttribute('data-name', itemData.name);
+            itemEntity.setAttribute('data-info', itemData.info);
+
+            // 2. CHECK FOR 3D MODEL
+            if (itemData.model) {
+                // Load the GLB
+                itemEntity.setAttribute('gltf-model', itemData.model);
+                
+                // Apply Scale from DB (or default to 1)
+                let scale = itemData.scale || "1 1 1";
+                itemEntity.setAttribute('scale', scale);
+                
+                // Hide the ugly gray box
+                if(fallback) fallback.setAttribute('visible', 'false');
+            } else {
+                // No model? Remove GLB attribute and show the box
+                itemEntity.removeAttribute('gltf-model');
+                itemEntity.setAttribute('scale', '1 1 1'); 
+                if(fallback) fallback.setAttribute('visible', 'true');
+            }
+
         }
     }
   },
 
   buildScenery: function(era) {
     const container = document.getElementById('custom-scenery');
-    if(!container) return; // Safety check
+    if(!container) return;
     container.innerHTML = ''; 
 
+    // DEFINITION: Shape, Color, Count, Size(h,r), Emission?
     if(era === 'prehistory') {
-      this.spawnProps(container, 'cylinder', '#3d2e1e', 10, {h:8, r:0.6}, true); 
+      this.spawnSafeProps(container, 'cylinder', '#3d2e1e', 15, {h:8, r:0.6}, false); // Trees
     } else if (era === 'classical') {
-      this.spawnPillars(container);
+      this.spawnSafeProps(container, 'cylinder', '#EEE', 8, {h:6, r:0.5}, false); // Pillars
     } else if (era === 'middleages') {
-      this.spawnGuards(container);
+      this.spawnSafeProps(container, 'box', '#555', 10, {h:3, r:0.5}, false); // Monoliths/Walls
     } else if (era === 'earlymodern') {
-      this.spawnHouse(container);
+      // For this era, let's spawn a floor circle + some wooden barrels/crates
+      let floor = document.createElement('a-circle');
+      floor.setAttribute('radius', '12');
+      floor.setAttribute('rotation', '-90 0 0');
+      floor.setAttribute('color', '#6d5638');
+      floor.setAttribute('position', '0 0.05 0');
+      container.appendChild(floor);
+      this.spawnSafeProps(container, 'cylinder', '#463016', 8, {h:1, r:0.4}, false); // Barrels
     } else if (era === 'contemporary') {
-       this.spawnProps(container, 'box', '#111', 15, {h:15, r:2}, false, true);
+       this.spawnSafeProps(container, 'box', '#111', 20, {h:15, r:1}, true); // Skyscrapers
     }
   },
 
-  spawnProps: function(container, shape, color, count, size, isTree, isNeon) {
-    for(let i=0; i<count; i++) {
-      let el = document.createElement('a-' + shape);
+  spawnSafeProps: function(container, shape, color, count, size, isNeon) {
+    // 1. Define "Forbidden Zones" (Where your artifacts/player are)
+    // [x, z, radius]
+    const noGoZones = [
+      {x: 0, z: 0, r: 4},    // Player Start Area
+      {x: -4, z: -3, r: 2},  // Item 1
+      {x: -2, z: -2.5, r: 2},// Item 2
+      {x: 0, z: -2, r: 2},   // Item 3
+      {x: 2, z: -2.5, r: 2}, // Item 4
+      {x: 4, z: -3, r: 2}    // Item 5
+    ];
+
+    let spawned = 0;
+    let attempts = 0;
+
+    // Try to spawn 'count' items, but don't loop forever if no space
+    while(spawned < count && attempts < 100) {
+      attempts++;
+
+      // Random position range: -15 to 15
       let x = (Math.random() * 30) - 15;
       let z = (Math.random() * 30) - 15;
-      if(Math.abs(x) < 3 && Math.abs(z) < 3) continue; 
 
-      el.setAttribute('position', `${x} ${size.h/2} ${z}`);
-      el.setAttribute('color', color);
-      el.setAttribute('height', size.h);
-      el.setAttribute('radius', size.r); 
-      el.setAttribute('width', size.r); 
-      el.setAttribute('depth', size.r); 
-      
-      if(isNeon) el.setAttribute('material', 'emissive: #00FFFF; emissiveIntensity: 0.2');
-      container.appendChild(el);
+      // Check collision
+      let safe = true;
+      for(let zone of noGoZones) {
+        // Distance formula
+        let dist = Math.sqrt(Math.pow(x - zone.x, 2) + Math.pow(z - zone.z, 2));
+        if(dist < zone.r) {
+          safe = false;
+          break;
+        }
+      }
+
+      if(safe) {
+        let el = document.createElement('a-' + shape);
+        el.setAttribute('position', `${x} ${size.h/2} ${z}`);
+        el.setAttribute('color', color);
+        el.setAttribute('height', size.h);
+        
+        // Handle Box vs Cylinder radius/width differences
+        if(shape === 'box') {
+            el.setAttribute('width', size.r * 2);
+            el.setAttribute('depth', size.r * 2);
+        } else {
+            el.setAttribute('radius', size.r);
+        }
+
+        if(isNeon) {
+            el.setAttribute('material', 'emissive: #00FFFF; emissiveIntensity: 0.4');
+        }
+        
+        container.appendChild(el);
+        spawned++;
+      }
     }
-  },
-
-  spawnPillars: function(container) {
-    for(let i=-4; i<=4; i+=2) {
-      if(i==0) continue;
-      let el = document.createElement('a-cylinder');
-      el.setAttribute('position', `${i*2} 3 -8`);
-      el.setAttribute('height', '6');
-      el.setAttribute('radius', '0.5');
-      el.setAttribute('color', '#EEE');
-      container.appendChild(el);
-    }
-  },
-
-  spawnGuards: function(container) {
-    let g1 = document.createElement('a-box');
-    g1.setAttribute('position', '-4 1.5 -2');
-    g1.setAttribute('scale', '1 3 1');
-    g1.setAttribute('color', '#555');
-    container.appendChild(g1);
-    let g2 = g1.cloneNode(true);
-    g2.setAttribute('position', '4 1.5 -2');
-    container.appendChild(g2);
-  },
-  
-  spawnHouse: function(container) {
-     let floor = document.createElement('a-circle');
-     floor.setAttribute('radius', '10');
-     floor.setAttribute('rotation', '-90 0 0');
-     floor.setAttribute('color', '#6d5638');
-     floor.setAttribute('position', '0 0.1 0');
-     container.appendChild(floor);
   },
 
   toggleMenu: function() {
@@ -171,7 +252,33 @@ const App = {
   
   toggleCredits: function() {
     const modal = document.getElementById('credits-modal');
+    const uiLayer = document.getElementById('ui-layer');
+    uiLayer.classList.toggle('hidden-ui');
     modal.style.display = modal.style.display === 'block' ? 'none' : 'block';
+  },
+
+  // Add this new function
+  enterExperience: function() {
+    // 1. Fade out the start screen
+    const screen = document.getElementById('start-screen');
+    screen.classList.add('hidden');
+    
+    // 2. Remove Start Screen from DOM
+    setTimeout(() => {
+      screen.style.display = 'none';
+      
+      // --- NEW CODE: REVEAL THE UI ---
+      // Show the instructions and fullscreen button
+      document.querySelector('.instructions').classList.remove('hidden-ui');
+      document.getElementById('fullscreen-btn').classList.remove('hidden-ui');
+      document.getElementById('ui-layer').classList.remove('hidden-ui');
+      
+    }, 1000);
+
+    AudioEngine.init();
+
+    // 3. Start the first Warp
+    this.startWarp('prehistory');
   },
 
   toggleFullscreen: function() {
