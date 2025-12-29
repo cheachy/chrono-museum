@@ -3,12 +3,13 @@
   <head>
     <meta charset="UTF-8">
     <title>Chrono-Museum: VR Final Project</title>
+    <link rel="icon" href="data:,">
     
-    <!-- External Libraries -->
+    <!-- EXTERNAL LIBRARIES -->
     <script src="https://aframe.io/releases/1.4.0/aframe.min.js"></script>
     <script src="https://unpkg.com/aframe-environment-component@1.3.2/dist/aframe-environment-component.min.js"></script>
 
-    <!-- Custom Styles -->
+    <!-- CUSTOM STYLES -->
     <link rel="stylesheet" href="css/main.css">
   </head>
   <body>
@@ -22,7 +23,7 @@
       </div>
     </div>
 
-    <button id="fullscreen-btn" class="hidden-ui" onclick="App.toggleFullscreen()" style="
+    <button id="fullscreen-btn" class="hidden-ui" onclick="UIController.toggleFullscreen()" style="
         position: fixed; 
         bottom: 20px; 
         right: 20px; 
@@ -50,7 +51,7 @@
       <div class="btn" onclick="App.startWarp('contemporary')">5. Contemporary (2000 AD)</div>
       
       <hr style="border: 0; border-top: 1px solid #333; margin: 20px 0;">
-      <div class="btn" onclick="App.toggleCredits()">About Project / Team</div>
+      <div class="btn" onclick="UIController.toggleCredits()">About Project / Team</div>
     </div>
 
     <!-- CREDITS MODAL -->
@@ -63,38 +64,44 @@
         <li><strong>3D Artist:</strong>Psahmm Gabriel Jonio</li>
         <li><strong>Researcher:</strong>Jounes Quezzagan</li>
       </ul>
-      <div class="btn" style="width: 100px; margin: 0 auto;" onclick="App.toggleCredits()">CLOSE</div>
+      <div class="btn" style="width: 100px; margin: 0 auto;" onclick="UIController.toggleCredits()">CLOSE</div>
     </div>
 
     <div class="instructions" class="hidden-ui">PRESS 'M' TO TRAVEL TIME</div>
 
     <!-- A-FRAME SCENE -->
     <a-scene cursor="rayOrigin: mouse" raycaster="objects: [info-click]" vr-mode-ui="enabled: false">
-          
-      <!-- 1. DYNAMIC ATMOSPHERE (Default is Starry Void) -->
+      
+      <!-- ASSETS -->
+      <a-assets>
+        <a-asset-item id="volcano-model" src="assets/prehistory/volcano.glb"></a-asset-item>
+        <a-asset-item id="large-bone-model" src="assets/prehistory/large_bone.glb"></a-asset-item>
+      </a-assets>
+      
+      <!-- Background Models Container -->
+      <a-entity id="background-models"></a-entity>
+      
+      <!-- DYNAMIC ATMOSPHERE -->
       <a-entity id="env" environment="preset: starry; fog: 0.6; groundColor: #111; grid: none"></a-entity>
       
-      <!-- 2. LIGHTING UPGRADE -->
+      <!-- LIGHTING UPGRADE -->
       <a-entity light="type: ambient; color: #BBB; intensity: 0.5"></a-entity>
       <a-entity light="type: directional; color: #FFF; intensity: 0.8; castShadow: true" position="-1 1 0"></a-entity>
       <a-entity light="type: point; color: #00FFFF; intensity: 0.5; distance: 10" position="0 2 0"></a-entity>
 
-      <!-- 3. FUTURISTIC PLATFORM (The 'Time Machine' Base) -->
+      <!-- FUTURISTIC PLATFORM -->
       <a-entity position="0 0.1 0">
-        <!-- Main Disc -->
         <a-cylinder radius="6" height="0.2" color="#222" material="metalness: 0.8; roughness: 0.2"></a-cylinder>
-        <!-- Glowing Ring -->
         <a-ring radius-inner="5.5" radius-outer="5.8" rotation="-90 0 0" position="0 0.11 0" 
                 material="shader: flat; color: #00FFFF; opacity: 0.8"
                 animation="property: scale; from: 1 1 1; to: 1.05 1.05 1.05; dir: alternate; dur: 2000; loop: true"></a-ring>
-        <!-- Inner Grid -->
         <a-circle radius="5.5" rotation="-90 0 0" position="0 0.12 0" 
                   material="src: url(https://cdn.aframe.io/a-painter/images/floor.jpg); repeat: 10 10; transparent: true; opacity: 0.3; color: #00FFFF"></a-circle>
       </a-entity>
 
       <a-entity id="custom-scenery"></a-entity>
 
-      <!-- Camera & Player -->
+      <!-- CAMERA & PLAYER -->
       <a-entity camera look-controls wasd-controls position="0 1.6 5">
         <a-cursor color="#00FFFF" scale="0.8 0.8 0.8"></a-cursor>
         <a-sphere id="warp-flash" radius="0.5" position="0 0 -0.6" visible="false"
@@ -102,7 +109,6 @@
         </a-sphere>
       </a-entity>
 
-      <!-- ... (Keep your Warp Tunnel, Text, and Item Pedestals exactly as they were) ... -->
       <!-- WARP TUNNEL -->
       <a-entity id="warp-tunnel" visible="false">
         <a-cylinder position="0 1.6 0" radius="6" height="30" rotation="90 0 0" open-ended="true" side="double"
@@ -120,18 +126,16 @@
       <a-entity position="0 2.5 -5">
         <a-text value="Interactive History" align="center" position="0 2 0" color="#BBB" scale="0.8 0.8 0.8"></a-text>
         <a-plane color="#050505" width="6" height="3.5" opacity="0.9" side="double"
-                material="shader: standard; emissive: #00FFFF; emissiveIntensity: 0.1; border: 1px solid white">
+                material="shader: standard; emissive: #00FFFF; emissiveIntensity: 0.1">
           <a-text id="wall-title" value="SYSTEM STANDBY" align="center" position="0 1 0.1" scale="1.8 1.8 1.8" color="#00FFFF"></a-text>
           <a-text id="wall-info" value="Waiting for user initialization..." align="center" width="4.5" position="0 0 0.1" color="#FFF"></a-text>
         </a-plane>
       </a-entity>
 
-      <!-- ITEM PEDESTALS (Keep your existing items 1-5 here) -->
       <!-- ITEM 1 -->
       <a-entity position="-4 0 -3" rotation="0 30 0">
         <a-cylinder color="#111" height="1" radius="0.4" material="metalness:0.5"></a-cylinder>
         <a-entity id="item1" info-click position="0 1 0" animation="property: rotation; to: 0 360 0; loop: true; dur: 8000">
-            <!-- ✅ CORRECT -->
             <a-box id="fallback-item1" color="#777" scale="0.5 0.5 0.5" visible="true"></a-box>
         </a-entity>
         <a-entity position="0 1.6 0">
@@ -144,7 +148,6 @@
       <a-entity position="-2 0 -2.5" rotation="0 15 0">
         <a-cylinder color="#111" height="1" radius="0.4" material="metalness:0.5"></a-cylinder>
         <a-entity id="item2" info-click position="0 1 0" animation="property: rotation; to: 0 360 0; loop: true; dur: 8000">
-            <!-- ⚠️ CHANGED FROM fallback-item1 TO fallback-item2 -->
             <a-box id="fallback-item2" color="#777" scale="0.5 0.5 0.5" visible="true"></a-box>
         </a-entity>
         <a-entity position="0 1.6 0">
@@ -157,7 +160,6 @@
       <a-entity position="0 0 -2" rotation="0 30 0">
         <a-cylinder color="#111" height="1" radius="0.4" material="metalness:0.5"></a-cylinder>
         <a-entity id="item3" info-click position="0 1 0" animation="property: rotation; to: 0 360 0; loop: true; dur: 8000">
-            <!-- ⚠️ CHANGED TO fallback-item3 -->
             <a-box id="fallback-item3" color="#777" scale="0.5 0.5 0.5" visible="true"></a-box>
         </a-entity>
         <a-entity position="0 1.6 0">
@@ -170,7 +172,6 @@
       <a-entity position="2 0 -2.5" rotation="0 30 0">
         <a-cylinder color="#111" height="1" radius="0.4" material="metalness:0.5"></a-cylinder>
         <a-entity id="item4" info-click position="0 1 0" animation="property: rotation; to: 0 360 0; loop: true; dur: 8000">
-            <!-- ⚠️ CHANGED TO fallback-item4 -->
             <a-box id="fallback-item4" color="#777" scale="0.5 0.5 0.5" visible="true"></a-box>
         </a-entity>
         <a-entity position="0 1.6 0">
@@ -194,8 +195,17 @@
 
     </a-scene>
 
-    <!-- Project Logic Scripts (Order Matters) -->
-    <script src="js/components.js"></script>
-    <script src="js/app.js"></script>
+    <!-- Project Logic Scripts -->
+    <script src="js/modules/components.js"></script>
+    <script src="js/modules/audio.js"></script>
+    <script src="js/modules/dataService.js"></script>
+    <script src="js/modules/sceneManager.js"></script>
+    <script src="js/modules/uiController.js"></script>
+    <script src="js/main.js"></script>
+    
+    <!-- UIController -->
+    <script>
+      window.UIController = UIController;
+    </script>
   </body>
 </html>
