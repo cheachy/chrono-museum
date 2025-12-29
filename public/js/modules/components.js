@@ -1,4 +1,4 @@
-// CLICK COMPONENT
+// Click Components
 AFRAME.registerComponent('info-click', {
   init: function () {
     this.el.addEventListener('click', function () {
